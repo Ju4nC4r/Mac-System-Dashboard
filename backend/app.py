@@ -41,12 +41,26 @@ def memory() -> dict[str, float]:
 def cpu() -> dict[str, float]:
     cores = os.cpu_count() or 1
     load = os.getloadavg()[0]
-    return {"percentage": round(min(100, load / cores * 100), 1), "load": round(load, 2), "cores": cores}
+    values = []
+    for value in run(["/bin/ps", "-e", "-o", "%cpu="]).splitlines():
+        try:
+            values.append(float(value.strip().replace(",", ".")))
+        except ValueError:
+            continue
+    return {"percentage": round(min(100, sum(values) / cores), 1), "load": round(load, 2), "cores": cores}
 
 
 def disk() -> dict[str, float]:
     usage = shutil.disk_usage("/")
     return {"total": usage.total, "used": usage.used, "free": usage.free, "percentage": round(usage.used / usage.total * 100, 1)}
+
+
+def network() -> dict[str, object]:
+    for interface in ("en0", "en1"):
+        address = run(["ipconfig", "getifaddr", interface]).strip()
+        if address:
+            return {"ip": address}
+    return {"ip": None}
 
 
 def battery() -> dict[str, object]:
@@ -57,15 +71,18 @@ def battery() -> dict[str, object]:
     # as charging, so read the state field immediately after the percentage.
     state_match = re.search(r"\d+%\s*;\s*([^;]+)\s*;", output.lower())
     state = state_match.group(1).strip() if state_match else ""
+    source_match = re.search(r"Now drawing from '([^']+)'", output, re.IGNORECASE)
+    on_ac_power = bool(source_match and source_match.group(1).lower() == "ac power")
     return {
         "available": bool(match),
         "percentage": int(match.group(1)) if match else None,
         "charging": state in {"charging", "finishing charge"},
+        "on_ac_power": on_ac_power,
     }
 
 
 def snapshot() -> dict[str, object]:
-    return {"timestamp": int(time.time() * 1000), "cpu": cpu(), "memory": memory(), "disk": disk(), "battery": battery()}
+    return {"timestamp": int(time.time() * 1000), "cpu": cpu(), "memory": memory(), "disk": disk(), "battery": battery(), "network": network()}
 
 
 def sample_loop() -> None:
