@@ -27,7 +27,7 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual(result["used"], 409600 - 60 * 4096)
 
     def test_process_parser_orders_by_cpu(self):
-        output = "  12 1 2.0 1.0 S /Applications/Low\n  13 1 8.0 0.5 R /Applications/High\n"
+        output = "  PID  PPID  %CPU %MEM STAT COMMAND\n  12 1 2.0 1.0 S /Applications/Low\n  13 1 8.0 0.5 R /Applications/High\n"
         with patch.object(app, "run", return_value=output), patch.object(app, "memory", return_value={"total": 1000}):
             result = app.processes()
         self.assertEqual([item["name"] for item in result], ["High", "Low"])
