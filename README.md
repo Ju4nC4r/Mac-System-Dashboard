@@ -63,6 +63,24 @@ npm run dev
 
 El servidor de desarrollo redirige las solicitudes de métricas y procesos al servicio local.
 
+## Contenedor para el dashboard
+
+El servicio Python debe seguir ejecutándose directamente en macOS, ya que consulta herramientas del sistema y procesos reales. La interfaz React sí puede ejecutarse en un contenedor.
+
+Primero inicia el servicio local de Python. En otra terminal, desde la raíz del proyecto, construye y arranca el contenedor:
+
+```bash
+docker compose up --build
+```
+
+El contenedor publica el dashboard en el puerto local 8080 y reenvía las rutas de API al servicio Python del Mac. Para probar la interfaz dentro de la fase de construcción, ejecuta:
+
+```bash
+docker build --target test -t mac-system-dashboard-tests frontend
+```
+
+Detén el contenedor con `docker compose down`.
+
 ## Arquitectura
 
 ```text

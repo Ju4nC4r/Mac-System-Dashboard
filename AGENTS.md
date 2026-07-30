@@ -42,6 +42,10 @@ El backend usa `sysctl`, `vm_stat`, `pmset` y `ps`. Mantener estas llamadas comp
 
 La batería puede no estar disponible en equipos sin batería. Mostrar un estado claro en la interfaz en vez de inventar un valor.
 
+## Contenedor
+
+El contenedor cubre la interfaz React y sus pruebas. No mover `backend/app.py` al contenedor: Docker Desktop ejecuta contenedores Linux y no puede acceder de forma fiable a las métricas ni a los procesos de macOS. El contenedor usa `host.docker.internal` para conectar con el servicio Python nativo.
+
 ## Seguridad de procesos
 
 - Mantener el servicio escuchando únicamente en `127.0.0.1`.
