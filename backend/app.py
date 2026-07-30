@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import signal
+import socket
 import subprocess
 import threading
 import time
@@ -59,8 +60,8 @@ def network() -> dict[str, object]:
     for interface in ("en0", "en1"):
         address = run(["ipconfig", "getifaddr", interface]).strip()
         if address:
-            return {"ip": address}
-    return {"ip": None}
+            return {"hostname": socket.gethostname(), "ip": address}
+    return {"hostname": socket.gethostname(), "ip": None}
 
 
 def battery() -> dict[str, object]:
