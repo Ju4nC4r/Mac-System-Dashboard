@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Activity, Battery, Cpu, HardDrive, MemoryStick, RefreshCw, Search, Thermometer, X } from 'lucide-react'
+import { Activity, Battery, Cpu, Download, HardDrive, MemoryStick, RefreshCw, Search, Thermometer, X } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import './styles.css'
 
-type Snapshot = { timestamp: number; cpu: { percentage: number; load: number; cores: number }; memory: { total: number; used: number; available: number; percentage: number }; disk: { total: number; used: number; free: number; percentage: number }; battery: { available: boolean; percentage: number | null; charging: boolean; on_ac_power: boolean }; network: { hostname: string; ip: string | null } }
+type Snapshot = { timestamp: number; cpu: { percentage: number; load: number; cores: number }; memory: { total: number; used: number; available: number; percentage: number; pressure?: number | null }; disk: { total: number; used: number; free: number; percentage: number }; battery: { available: boolean; percentage: number | null; charging: boolean; on_ac_power: boolean }; network: { hostname: string; ip: string | null } }
 type Process = { pid: number; name: string; command: string; cpu: number; memory: number; state: string }
 const formatBytes = (value: number) => value >= 1e9 ? `${(value / 1e9).toFixed(1)} GB` : `${Math.round(value / 1e6)} MB`
 
@@ -25,6 +25,8 @@ export function App() {
   const [selected, setSelected] = useState<Process | null>(null)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
+  const [sortBy, setSortBy] = useState<'cpu' | 'memory'>('cpu')
+  const [windowSeconds, setWindowSeconds] = useState(60)
   const load = async () => {
     try {
       const [current, trend, list] = await Promise.all(['/api/overview', '/api/history', '/api/processes'].map(async url => {
@@ -40,6 +42,12 @@ export function App() {
   }
   useEffect(() => { load(); const timer = window.setInterval(load, 3000); return () => clearInterval(timer) }, [])
   const filtered = useMemo(() => processes.filter(item => item.name.toLowerCase().includes(query.toLowerCase())).slice(0, 14), [processes, query])
+  const ordered = useMemo(() => [...filtered].sort((a, b) => b[sortBy] - a[sortBy]), [filtered, sortBy])
+  const visibleHistory = useMemo(() => history.filter(item => item.timestamp >= Date.now() - windowSeconds * 1000), [history, windowSeconds])
+  const downloadDiagnostics = () => {
+    const blob = new Blob([JSON.stringify({ overview, history: visibleHistory, processes: ordered, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' })
+    const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'mac-system-dashboard-diagnostic.json'; link.click(); URL.revokeObjectURL(link.href)
+  }
   const act = async (kind: 'terminate' | 'force') => {
     if (!selected || !window.confirm(`${kind === 'force' ? 'Forzar la finalización' : 'Finalizar'} de ${selected.name}? Puede perderse trabajo sin guardar.`)) return
     const response = await fetch(`/api/processes/${selected.pid}/${kind}`, { method: 'POST' }).then(res => res.json())
@@ -47,10 +55,10 @@ export function App() {
   }
   if (!overview) return <main className="loading">{error || 'Cargando métricas del Mac…'}{error && <button className="refresh" onClick={load}>Reintentar</button>}</main>
   const { cpu, memory, disk, battery, network } = overview
-  return <main><nav><div className="brand"><Activity/><div><h1>mac-system-dashboard</h1><p>{network.hostname} · IP {network.ip ?? 'No disponible'}</p></div></div><button className="refresh" onClick={load}><RefreshCw/>Actualizar</button></nav>
-    <div className="metrics"><MetricCard icon={<Cpu/>} title="CPU" value={`${cpu.percentage}%`} detail={`Carga ${cpu.load} · ${cpu.cores} núcleos`} percentage={cpu.percentage}/><MetricCard icon={<MemoryStick/>} title="Memoria" value={formatBytes(memory.used)} detail={`de ${formatBytes(memory.total)} · ${formatBytes(memory.available)} libre`} percentage={memory.percentage} tone="green"/><MetricCard icon={<HardDrive/>} title="Disco" value={formatBytes(disk.used)} detail={`de ${formatBytes(disk.total)} · ${formatBytes(disk.free)} libre`} percentage={disk.percentage}/><MetricCard icon={battery.available ? <Battery/> : <Thermometer/>} title="Batería" value={battery.available ? `${battery.percentage}%` : 'No disponible'} detail={battery.available ? (battery.charging ? 'Cargando' : battery.on_ac_power ? 'Con corriente · descargando' : 'En batería') : 'Este Mac no informa batería'} percentage={battery.percentage ?? 0} tone="amber"/></div>
-    <div className="charts"><Chart title="Uso de CPU" data={history} keyName="cpu" color="#4b9cff" formatter={value => `${value}%`}/><Chart title="Uso de memoria" data={history} keyName="memory" color="#65d46e" formatter={value => `${value} GB`}/></div>
-    <section className="process-section"><div className="process-table"><header><div><h2>Procesos</h2><p>{error || 'Selecciona un proceso para actuar sobre él.'}</p></div><label><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar proceso"/></label></header><table><thead><tr><th>Proceso</th><th>CPU</th><th>Memoria</th><th>Estado</th></tr></thead><tbody>{filtered.length ? filtered.map(item => <tr className={selected?.pid === item.pid ? 'selected' : ''} onClick={() => setSelected(item)} key={item.pid}><td><b>{item.name}</b><small>PID {item.pid}</small></td><td>{item.cpu}%</td><td>{formatBytes(item.memory)}</td><td><span className="state">{item.state}</span></td></tr>) : <tr><td colSpan={4}>No se encontraron procesos.</td></tr>}</tbody></table></div><aside><h2>Acción seleccionada</h2>{selected ? <><h3>{selected.name}</h3><p>PID {selected.pid}. Las acciones requieren confirmación.</p><button className="danger" onClick={() => act('terminate')}><X/>Finalizar proceso</button><button className="outline" onClick={() => act('force')}>Forzar finalización</button></> : <p>Elige un proceso de la tabla para ver las acciones disponibles.</p>}{notice && <p className="notice">{notice}</p>}</aside></section>
+  return <main><nav><div className="brand"><Activity/><div><h1>mac-system-dashboard</h1><p>{network.hostname} · IP {network.ip ?? 'No disponible'}</p></div></div><div><button className="refresh" onClick={downloadDiagnostics}><Download/>Diagnóstico</button><button className="refresh" onClick={load}><RefreshCw/>Actualizar</button></div></nav>
+    <div className="metrics"><MetricCard icon={<Cpu/>} title="CPU" value={`${cpu.percentage}%`} detail={`Carga ${cpu.load} · ${cpu.cores} núcleos`} percentage={cpu.percentage}/><MetricCard icon={<MemoryStick/>} title="Memoria" value={formatBytes(memory.used)} detail={`Presión ${memory.pressure ?? '—'}% · ${formatBytes(memory.available)} libre`} percentage={memory.percentage} tone="green"/><MetricCard icon={<HardDrive/>} title="Disco" value={formatBytes(disk.used)} detail={`de ${formatBytes(disk.total)} · ${formatBytes(disk.free)} libre`} percentage={disk.percentage}/><MetricCard icon={battery.available ? <Battery/> : <Thermometer/>} title="Batería" value={battery.available ? `${battery.percentage}%` : 'No disponible'} detail={battery.available ? (battery.charging ? 'Cargando' : battery.on_ac_power ? 'Con corriente · descargando' : 'En batería') : 'Este Mac no informa batería'} percentage={battery.percentage ?? 0} tone="amber"/></div>
+    <div><label>Gráficas: <select value={windowSeconds} onChange={event => setWindowSeconds(Number(event.target.value))}><option value={60}>1 min</option><option value={300}>5 min</option><option value={900}>15 min</option></select></label></div><div className="charts"><Chart title="Uso de CPU" data={visibleHistory} keyName="cpu" color="#4b9cff" formatter={value => `${value}%`}/><Chart title="Uso de memoria" data={visibleHistory} keyName="memory" color="#65d46e" formatter={value => `${value} GB`}/></div>
+    <section className="process-section"><div className="process-table"><header><div><h2>Procesos</h2><p>{error || 'Selecciona un proceso para actuar sobre él.'}</p></div><label><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar proceso"/></label></header><table><thead><tr><th>Proceso</th><th><button onClick={() => setSortBy('cpu')}>CPU</button></th><th><button onClick={() => setSortBy('memory')}>Memoria</button></th><th>Estado</th></tr></thead><tbody>{ordered.length ? ordered.map(item => <tr className={selected?.pid === item.pid ? 'selected' : ''} onClick={() => setSelected(item)} key={item.pid}><td><b>{item.name}</b><small>PID {item.pid}</small></td><td>{item.cpu}%</td><td>{formatBytes(item.memory)}</td><td><span className="state">{item.state}</span></td></tr>) : <tr><td colSpan={4}>No se encontraron procesos.</td></tr>}</tbody></table></div><aside><h2>Acción seleccionada</h2>{selected ? <><h3>{selected.name}</h3><p>PID {selected.pid}. Las acciones requieren confirmación.</p><button className="danger" onClick={() => act('terminate')}><X/>Finalizar proceso</button><button className="outline" onClick={() => act('force')}>Forzar finalización</button></> : <p>Elige un proceso de la tabla para ver las acciones disponibles.</p>}{notice && <p className="notice">{notice}</p>}</aside></section>
   </main>
 }
 const root = document.getElementById('root')

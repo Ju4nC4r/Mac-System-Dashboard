@@ -36,7 +36,9 @@ def memory() -> dict[str, float]:
     available_pages = values.get("free", 0) + values.get("inactive", 0) + values.get("speculative", 0)
     available = available_pages * page_size
     used = max(0, total - available)
-    return {"total": total, "used": used, "available": available, "percentage": round(used / total * 100, 1) if total else 0}
+    pressure = re.search(r"System-wide memory free percentage:\s*(\d+)%", run(["memory_pressure"]))
+    return {"total": total, "used": used, "available": available, "percentage": round(used / total * 100, 1) if total else 0,
+            "pressure": round(100 - int(pressure.group(1)), 1) if pressure else None}
 
 
 def cpu() -> dict[str, float]:
