@@ -46,6 +46,8 @@ La batería puede no estar disponible en equipos sin batería. Mostrar un estado
 
 El contenedor cubre la interfaz React y sus pruebas. No mover `backend/app.py` al contenedor: Docker Desktop ejecuta contenedores Linux y no puede acceder de forma fiable a las métricas ni a los procesos de macOS. El contenedor usa `host.docker.internal` para conectar con el servicio Python nativo.
 
+El acceso mediante Docker puede protegerse con autenticación básica usando `DASHBOARD_AUTH_USER` y `DASHBOARD_AUTH_PASSWORD` desde un archivo `.env` local. Nunca versionar credenciales ni registrar la contraseña en la salida de comandos.
+
 ## Seguridad de procesos
 
 - Mantener el servicio escuchando únicamente en `127.0.0.1`.

@@ -109,6 +109,18 @@ También puedes validar la fase de pruebas dentro de la imagen:
 docker build --target test -t mac-system-dashboard-tests frontend
 ```
 
+### Control de acceso
+
+El contenedor admite protección con usuario y contraseña mediante autenticación básica. Copia el ejemplo y asigna una contraseña robusta que no vayas a incluir en Git:
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y arranca o reconstruye el contenedor con `docker compose up --build`. A partir de ese momento el navegador pedirá las credenciales antes de mostrar el dashboard o sus rutas de API.
+
+> Esta protección cubre el acceso publicado por Docker. El servicio Python se mantiene ligado a `localhost`, por lo que no queda expuesto a la red.
+
 ## API local
 
 Todas las rutas están disponibles solo desde el propio ordenador.
