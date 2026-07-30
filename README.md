@@ -13,7 +13,7 @@ CPU, memoria, disco, batería y procesos reales, reunidos en una interfaz web cl
 [![Métricas](https://img.shields.io/badge/m%C3%A9tricas-4-22C55E)](#-qué-verás)
 [![Último commit](https://img.shields.io/github/last-commit/Ju4nC4r/Mac-System-Dashboard?logo=github&label=%C3%BAltimo%20commit)](https://github.com/Ju4nC4r/Mac-System-Dashboard/commits/main)
 
-[Inicio rápido](#-inicio-rápido) · [Docker](#-usar-docker) · [API](#-api-local) · [Seguridad](#-seguridad) · [Contribuir](#-contribuir)
+[Inicio rápido](#-inicio-rápido) · [Arquitectura](#-arquitectura) · [Docker](#-usar-docker) · [API](#-api-local) · [Contribuir](#-contribuir)
 
 </div>
 
@@ -27,6 +27,8 @@ Está pensado para ejecutarse cuando lo necesitas. El servicio escucha únicamen
 
 - **Lectura inmediata:** CPU, memoria, disco y batería en tarjetas grandes y actualizadas automáticamente.
 - **Tendencias útiles:** gráficas recientes de CPU y memoria para entender la evolución, no solo una cifra puntual.
+- **Contexto del equipo:** nombre de host, IP local, presión de memoria y estado real de alimentación.
+- **Diagnóstico local:** exportación de una instantánea JSON sin transmitir datos fuera del Mac.
 - **Procesos bajo control:** búsqueda y ordenación por consumo, compatible con formatos numéricos regionales de macOS, con cierre normal o forzado tras confirmación.
 - **Seguro por defecto:** protege procesos esenciales de macOS y no intenta elevar permisos.
 - **Privado y local:** no necesita base de datos, cuenta ni servicio en la nube.
@@ -66,18 +68,20 @@ Abre en el navegador la dirección local indicada por la terminal. Para detenerl
 
 | Área | Información disponible |
 | --- | --- |
-| **Resumen** | Uso de CPU, memoria, disco y batería. |
-| **Gráficas** | Evolución reciente de CPU y memoria. |
+| **Resumen** | CPU, memoria, disco, batería, presión de memoria, IP local y nombre de host. |
+| **Gráficas** | Evolución de CPU y memoria, con intervalos de 1, 5 o 15 minutos. |
 | **Procesos** | Nombre, PID, CPU, memoria y estado de los procesos más activos. |
 | **Acciones** | Finalización normal o forzada de un proceso seleccionado, con confirmación. |
 
 La disponibilidad de batería depende del hardware. En un Mac sin batería, el dashboard lo muestra explícitamente en lugar de inventar un valor. Las gráficas se van completando mientras el servicio está en marcha: espera unos segundos después de iniciarlo para ver la tendencia.
 
-## 🛠️ Desarrollo
-
 ## 🗺️ Arquitectura
 
 ![Arquitectura local del dashboard](docs/assets/architecture.png)
+
+El Mac ejecuta un servicio Python nativo que obtiene las métricas y expone una API solo en `localhost`. React consume esa API y presenta el panel. Docker, cuando se usa, sirve únicamente la interfaz y la conecta al servicio nativo; no contiene el recolector de métricas.
+
+## 🛠️ Desarrollo
 
 La interfaz usa React, TypeScript y Vite. Para desarrollarla con recarga automática, arranca primero el servicio Python y, en otra terminal, ejecuta:
 
@@ -173,7 +177,7 @@ Las pruebas cubren cálculos de métricas, lectura y protección de procesos —
 
 ## 🤝 Contribuir
 
-Las decisiones operativas y los ficheros clave del proyecto están documentados en [`AGENTS.md`](AGENTS.md). Mantén el dashboard local, seguro y compatible con macOS; no añadas telemetría ni automatices la finalización de procesos sin una petición explícita.
+Consulta [`CONTRIBUTING.md`](CONTRIBUTING.md) para el flujo completo. Las decisiones operativas y los ficheros clave están en [`AGENTS.md`](AGENTS.md). Mantén el dashboard local, seguro y compatible con macOS; no añadas telemetría ni automatices la finalización de procesos sin una petición explícita.
 
 ## 📄 Licencia
 
