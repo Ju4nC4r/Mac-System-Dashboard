@@ -49,7 +49,16 @@ def disk() -> dict[str, float]:
 def battery() -> dict[str, object]:
     output = run(["pmset", "-g", "batt"])
     match = re.search(r"(\d+)%", output)
-    return {"available": bool(match), "percentage": int(match.group(1)) if match else None, "charging": "charging" in output.lower()}
+    # pmset reports states such as "charging", "charged", "discharging" and
+    # "not charging".  A substring check would incorrectly treat the latter
+    # as charging, so read the state field immediately after the percentage.
+    state_match = re.search(r"\d+%\s*;\s*([^;]+)\s*;", output.lower())
+    state = state_match.group(1).strip() if state_match else ""
+    return {
+        "available": bool(match),
+        "percentage": int(match.group(1)) if match else None,
+        "charging": state in {"charging", "finishing charge"},
+    }
 
 
 def snapshot() -> dict[str, object]:

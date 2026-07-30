@@ -46,6 +46,20 @@ class MetricsTests(unittest.TestCase):
         self.assertTrue(ok)
         kill.assert_called_once_with(42000, app.signal.SIGKILL)
 
+    def test_battery_does_not_treat_not_charging_as_charging(self):
+        output = "Now drawing from 'Battery Power'\n -InternalBattery-0 80%; not charging; 2:00 remaining present: true\n"
+        with patch.object(app, "run", return_value=output):
+            result = app.battery()
+        self.assertTrue(result["available"])
+        self.assertEqual(result["percentage"], 80)
+        self.assertFalse(result["charging"])
+
+    def test_battery_detects_charging_state(self):
+        output = "Now drawing from 'AC Power'\n -InternalBattery-0 80%; charging; 1:00 remaining present: true\n"
+        with patch.object(app, "run", return_value=output):
+            result = app.battery()
+        self.assertTrue(result["charging"])
+
 
 class ApiTests(unittest.TestCase):
     def setUp(self):
