@@ -6,15 +6,24 @@
 
 CPU, memoria, disco, batería y procesos reales, reunidos en una interfaz web clara que no envía datos fuera del ordenador.
 
+[![macOS](https://img.shields.io/badge/macOS-local-111827?logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-TypeScript-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Métricas](https://img.shields.io/badge/m%C3%A9tricas-4-22C55E)](#-qué-verás)
+[![Último commit](https://img.shields.io/github/last-commit/Ju4nC4r/Mac-System-Dashboard?logo=github&label=%C3%BAltimo%20commit)](https://github.com/Ju4nC4r/Mac-System-Dashboard/commits/main)
+
+[Inicio rápido](#-inicio-rápido) · [Docker](#-usar-docker) · [API](#-api-local) · [Seguridad](#-seguridad) · [Contribuir](#-contribuir)
+
 </div>
 
-## Introducción
+## ✨ Introducción
 
 `mac-system-dashboard` convierte las métricas esenciales de macOS en un panel web local: tarjetas grandes para una lectura inmediata, gráficas para detectar tendencias y una tabla de procesos para investigar qué está consumiendo recursos.
 
 Está pensado para ejecutarse cuando lo necesitas. El servicio escucha únicamente en el propio Mac y conserva las muestras solo en memoria mientras está en marcha.
 
-## Características
+## 🧭 Características
 
 - **Lectura inmediata:** CPU, memoria, disco y batería en tarjetas grandes y actualizadas automáticamente.
 - **Tendencias útiles:** gráficas recientes de CPU y memoria para entender la evolución, no solo una cifra puntual.
@@ -23,7 +32,7 @@ Está pensado para ejecutarse cuando lo necesitas. El servicio escucha únicamen
 - **Privado y local:** no necesita base de datos, cuenta ni servicio en la nube.
 - **Preparado para desarrollo:** React, TypeScript, Python, pruebas automatizadas y contenedor para la interfaz.
 
-## Inicio rápido
+## 🚀 Inicio rápido
 
 ### Requisitos
 
@@ -53,7 +62,7 @@ Abre en el navegador la dirección local indicada por la terminal. Para detenerl
 
 > El servicio no se inicia automáticamente al encender el Mac: se ejecuta solo bajo petición.
 
-## Qué verás
+## 📊 Qué verás
 
 | Área | Información disponible |
 | --- | --- |
@@ -64,7 +73,7 @@ Abre en el navegador la dirección local indicada por la terminal. Para detenerl
 
 La disponibilidad de batería depende del hardware. En un Mac sin batería, el dashboard lo muestra explícitamente en lugar de inventar un valor.
 
-## Desarrollo
+## 🛠️ Desarrollo
 
 La interfaz usa React, TypeScript y Vite. Para desarrollarla con recarga automática, arranca primero el servicio Python y, en otra terminal, ejecuta:
 
@@ -87,7 +96,7 @@ backend/static/  Salida compilada de la interfaz
 
 El backend obtiene las métricas con herramientas nativas de macOS: `sysctl`, `vm_stat`, `pmset` y `ps`.
 
-## Usar Docker
+## 📦 Usar Docker
 
 El contenedor ejecuta la interfaz React y sus pruebas. El servicio Python debe mantenerse en macOS para poder consultar las métricas y procesos reales del host.
 
@@ -121,7 +130,7 @@ Edita `.env` y arranca o reconstruye el contenedor con `docker compose up --buil
 
 > Esta protección cubre el acceso publicado por Docker. El servicio Python se mantiene ligado a `localhost`, por lo que no queda expuesto a la red.
 
-## API local
+## 🔌 API local
 
 Todas las rutas están disponibles solo desde el propio ordenador.
 
@@ -133,13 +142,13 @@ Todas las rutas están disponibles solo desde el propio ordenador.
 | `POST /api/processes/:pid/terminate` | Solicita el cierre normal de un proceso. |
 | `POST /api/processes/:pid/force` | Solicita el cierre forzado de un proceso. |
 
-## Seguridad
+## 🔒 Seguridad
 
 Finalizar un proceso puede causar pérdida de trabajo no guardado. La interfaz siempre pide confirmación y el backend bloquea acciones sobre procesos críticos conocidos, el proceso principal del sistema y el propio dashboard.
 
 Algunos procesos pueden requerir permisos adicionales de macOS. El dashboard informa de esta limitación y nunca intenta obtener privilegios por su cuenta.
 
-## Verificación
+## ✅ Verificación
 
 Antes de enviar cambios, ejecuta la batería completa:
 
@@ -154,10 +163,10 @@ cd ..
 
 Las pruebas cubren cálculos de métricas, lectura y protección de procesos, rutas de la API local, renderizado de la interfaz y búsqueda de procesos. La revisión visual se realiza con datos reales, sin finalizar aplicaciones durante las pruebas.
 
-## Contribuir
+## 🤝 Contribuir
 
 Las decisiones operativas y los ficheros clave del proyecto están documentados en [`AGENTS.md`](AGENTS.md). Mantén el dashboard local, seguro y compatible con macOS; no añadas telemetría ni automatices la finalización de procesos sin una petición explícita.
 
-## Repositorio
+## 📚 Repositorio
 
 El proyecto se mantiene en [GitHub](https://github.com/Ju4nC4r/Mac-System-Dashboard).
