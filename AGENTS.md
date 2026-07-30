@@ -38,7 +38,7 @@ cd frontend && npm run dev
 
 ## Datos de macOS
 
-El backend usa `sysctl`, `vm_stat`, `pmset` y `ps`. Mantener estas llamadas compatibles con macOS y evitar añadir dependencias Python si no son necesarias.
+El backend usa `sysctl`, `vm_stat`, `pmset` y `ps`. Mantener estas llamadas compatibles con macOS y evitar añadir dependencias Python si no son necesarias. Al interpretar `ps`, forzar una configuración numérica estable y aceptar comas decimales de forma defensiva: de lo contrario, un Mac configurado en español puede devolver una tabla de procesos vacía.
 
 La batería puede no estar disponible en equipos sin batería. Mostrar un estado claro en la interfaz en vez de inventar un valor.
 
@@ -65,4 +65,4 @@ cd .. && .venv/bin/python -m py_compile backend/app.py
 cd .. && .venv/bin/python -m unittest discover -s backend -p 'test_*.py'
 ```
 
-Verificar también en el navegador que se muestran métricas reales, que el filtro de procesos funciona y que las acciones piden confirmación. No finalizar procesos reales durante pruebas salvo petición explícita del usuario.
+Verificar también en el navegador que se muestran métricas reales, que la tabla de procesos no está vacía, que el filtro funciona y que las acciones piden confirmación. Tras reiniciar, esperar varias muestras antes de evaluar las gráficas. No finalizar procesos reales durante pruebas salvo petición explícita del usuario.

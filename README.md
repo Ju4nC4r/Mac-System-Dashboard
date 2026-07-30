@@ -27,7 +27,7 @@ Está pensado para ejecutarse cuando lo necesitas. El servicio escucha únicamen
 
 - **Lectura inmediata:** CPU, memoria, disco y batería en tarjetas grandes y actualizadas automáticamente.
 - **Tendencias útiles:** gráficas recientes de CPU y memoria para entender la evolución, no solo una cifra puntual.
-- **Procesos bajo control:** búsqueda y ordenación por consumo, con cierre normal o forzado tras confirmación.
+- **Procesos bajo control:** búsqueda y ordenación por consumo, compatible con formatos numéricos regionales de macOS, con cierre normal o forzado tras confirmación.
 - **Seguro por defecto:** protege procesos esenciales de macOS y no intenta elevar permisos.
 - **Privado y local:** no necesita base de datos, cuenta ni servicio en la nube.
 - **Preparado para desarrollo:** React, TypeScript, Python, pruebas automatizadas y contenedor para la interfaz.
@@ -71,7 +71,7 @@ Abre en el navegador la dirección local indicada por la terminal. Para detenerl
 | **Procesos** | Nombre, PID, CPU, memoria y estado de los procesos más activos. |
 | **Acciones** | Finalización normal o forzada de un proceso seleccionado, con confirmación. |
 
-La disponibilidad de batería depende del hardware. En un Mac sin batería, el dashboard lo muestra explícitamente en lugar de inventar un valor.
+La disponibilidad de batería depende del hardware. En un Mac sin batería, el dashboard lo muestra explícitamente en lugar de inventar un valor. Las gráficas se van completando mientras el servicio está en marcha: espera unos segundos después de iniciarlo para ver la tendencia.
 
 ## 🛠️ Desarrollo
 
@@ -94,7 +94,7 @@ backend/         Servicio local de Python
 backend/static/  Salida compilada de la interfaz
 ```
 
-El backend obtiene las métricas con herramientas nativas de macOS: `sysctl`, `vm_stat`, `pmset` y `ps`.
+El backend obtiene las métricas con herramientas nativas de macOS: `sysctl`, `vm_stat`, `pmset` y `ps`. Para que la tabla de procesos funcione igual con cualquier idioma del sistema, normaliza los valores numéricos de `ps` a un formato estable antes de procesarlos.
 
 ## 📦 Usar Docker
 
@@ -161,7 +161,7 @@ cd ..
 .venv/bin/python -m unittest discover -s backend -p 'test_*.py'
 ```
 
-Las pruebas cubren cálculos de métricas, lectura y protección de procesos, rutas de la API local, renderizado de la interfaz y búsqueda de procesos. La revisión visual se realiza con datos reales, sin finalizar aplicaciones durante las pruebas.
+Las pruebas cubren cálculos de métricas, lectura y protección de procesos —incluidos formatos con coma decimal—, rutas de la API local, renderizado de la interfaz y búsqueda de procesos. La revisión visual se realiza con datos reales, sin finalizar aplicaciones durante las pruebas.
 
 ## 🤝 Contribuir
 
