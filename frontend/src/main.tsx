@@ -17,7 +17,7 @@ function Chart({ title, data, keyName, color, formatter }: { title: string; data
   return <section className="chart-card"><h2>{title}</h2><div className="chart"><ResponsiveContainer width="100%" height="100%"><AreaChart data={points}><defs><linearGradient id={`fill-${keyName}`} x1="0" x2="0" y1="0" y2="1"><stop stopColor={color} stopOpacity={.36}/><stop offset="1" stopColor={color} stopOpacity={0}/></linearGradient></defs><XAxis dataKey="time" minTickGap={40}/><YAxis tickFormatter={formatter}/><Tooltip formatter={(value) => formatter(Number(value ?? 0))}/><Area type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} fill={`url(#fill-${keyName})`} /></AreaChart></ResponsiveContainer></div></section>
 }
 
-function App() {
+export function App() {
   const [overview, setOverview] = useState<Snapshot | null>(null)
   const [history, setHistory] = useState<Snapshot[]>([])
   const [processes, setProcesses] = useState<Process[]>([])
@@ -43,4 +43,5 @@ function App() {
     <section className="process-section"><div className="process-table"><header><div><h2>Procesos</h2><p>Selecciona un proceso para actuar sobre él.</p></div><label><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar proceso"/></label></header><table><thead><tr><th>Proceso</th><th>CPU</th><th>Memoria</th><th>Estado</th></tr></thead><tbody>{filtered.map(item => <tr className={selected?.pid === item.pid ? 'selected' : ''} onClick={() => setSelected(item)} key={item.pid}><td><b>{item.name}</b><small>PID {item.pid}</small></td><td>{item.cpu}%</td><td>{formatBytes(item.memory)}</td><td><span className="state">{item.state}</span></td></tr>)}</tbody></table></div><aside><h2>Acción seleccionada</h2>{selected ? <><h3>{selected.name}</h3><p>PID {selected.pid}. Las acciones requieren confirmación.</p><button className="danger" onClick={() => act('terminate')}><X/>Finalizar proceso</button><button className="outline" onClick={() => act('force')}>Forzar finalización</button></> : <p>Elige un proceso de la tabla para ver las acciones disponibles.</p>}{notice && <p className="notice">{notice}</p>}</aside></section>
   </main>
 }
-createRoot(document.getElementById('root')!).render(<App />)
+const root = document.getElementById('root')
+if (root) createRoot(root).render(<App />)

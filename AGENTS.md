@@ -54,7 +54,9 @@ La batería puede no estar disponible en equipos sin batería. Mostrar un estado
 
 ```bash
 cd frontend && npm run build
+cd frontend && npm test
 cd .. && .venv/bin/python -m py_compile backend/app.py
+cd .. && .venv/bin/python -m unittest discover -s backend -p 'test_*.py'
 ```
 
 Verificar también en el navegador que se muestran métricas reales, que el filtro de procesos funciona y que las acciones piden confirmación. No finalizar procesos reales durante pruebas salvo petición explícita del usuario.

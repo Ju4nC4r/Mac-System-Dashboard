@@ -99,10 +99,14 @@ Antes de publicar cambios, ejecuta:
 
 ```bash
 cd frontend
+npm test
 npm run build
 cd ..
 .venv/bin/python -m py_compile backend/app.py
+.venv/bin/python -m unittest discover -s backend -p 'test_*.py'
 ```
+
+Las pruebas de Python cubren cálculos de métricas, lectura y protección de procesos y rutas de la API local. Las pruebas de React comprueban el renderizado de métricas y el filtro de procesos. La validación visual se realiza con datos reales en el navegador, sin finalizar procesos.
 
 ## Git
 
