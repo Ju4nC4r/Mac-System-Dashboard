@@ -24,9 +24,19 @@ export function App() {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<Process | null>(null)
   const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
   const load = async () => {
-    const [current, trend, list] = await Promise.all(['/api/overview', '/api/history', '/api/processes'].map(url => fetch(url).then(res => res.json())))
-    setOverview(current); setHistory(trend); setProcesses(list)
+    try {
+      const [current, trend, list] = await Promise.all(['/api/overview', '/api/history', '/api/processes'].map(async url => {
+        const response = await fetch(url)
+        if (!response.ok) throw new Error('No se pudo obtener la información del Mac.')
+        return response.json()
+      }))
+      if (!Array.isArray(trend) || !Array.isArray(list)) throw new Error('El servicio devolvió datos incompletos.')
+      setOverview(current); setHistory(trend); setProcesses(list); setError('')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'No se pudo conectar con el servicio local.')
+    }
   }
   useEffect(() => { load(); const timer = window.setInterval(load, 3000); return () => clearInterval(timer) }, [])
   const filtered = useMemo(() => processes.filter(item => item.name.toLowerCase().includes(query.toLowerCase())).slice(0, 14), [processes, query])
@@ -35,12 +45,12 @@ export function App() {
     const response = await fetch(`/api/processes/${selected.pid}/${kind}`, { method: 'POST' }).then(res => res.json())
     setNotice(response.message); setSelected(null); load()
   }
-  if (!overview) return <main className="loading">Cargando métricas del Mac…</main>
+  if (!overview) return <main className="loading">{error || 'Cargando métricas del Mac…'}{error && <button className="refresh" onClick={load}>Reintentar</button>}</main>
   const { cpu, memory, disk, battery, network } = overview
   return <main><nav><div className="brand"><Activity/><div><h1>mac-system-dashboard</h1><p>Monitor local de este Mac · IP {network.ip ?? 'No disponible'}</p></div></div><button className="refresh" onClick={load}><RefreshCw/>Actualizar</button></nav>
     <div className="metrics"><MetricCard icon={<Cpu/>} title="CPU" value={`${cpu.percentage}%`} detail={`Carga ${cpu.load} · ${cpu.cores} núcleos`} percentage={cpu.percentage}/><MetricCard icon={<MemoryStick/>} title="Memoria" value={formatBytes(memory.used)} detail={`de ${formatBytes(memory.total)} · ${formatBytes(memory.available)} libre`} percentage={memory.percentage} tone="green"/><MetricCard icon={<HardDrive/>} title="Disco" value={formatBytes(disk.used)} detail={`de ${formatBytes(disk.total)} · ${formatBytes(disk.free)} libre`} percentage={disk.percentage}/><MetricCard icon={battery.available ? <Battery/> : <Thermometer/>} title="Batería" value={battery.available ? `${battery.percentage}%` : 'No disponible'} detail={battery.available ? (battery.charging ? 'Cargando' : battery.on_ac_power ? 'Con corriente · descargando' : 'En batería') : 'Este Mac no informa batería'} percentage={battery.percentage ?? 0} tone="amber"/></div>
     <div className="charts"><Chart title="Uso de CPU" data={history} keyName="cpu" color="#4b9cff" formatter={value => `${value}%`}/><Chart title="Uso de memoria" data={history} keyName="memory" color="#65d46e" formatter={value => `${value} GB`}/></div>
-    <section className="process-section"><div className="process-table"><header><div><h2>Procesos</h2><p>Selecciona un proceso para actuar sobre él.</p></div><label><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar proceso"/></label></header><table><thead><tr><th>Proceso</th><th>CPU</th><th>Memoria</th><th>Estado</th></tr></thead><tbody>{filtered.map(item => <tr className={selected?.pid === item.pid ? 'selected' : ''} onClick={() => setSelected(item)} key={item.pid}><td><b>{item.name}</b><small>PID {item.pid}</small></td><td>{item.cpu}%</td><td>{formatBytes(item.memory)}</td><td><span className="state">{item.state}</span></td></tr>)}</tbody></table></div><aside><h2>Acción seleccionada</h2>{selected ? <><h3>{selected.name}</h3><p>PID {selected.pid}. Las acciones requieren confirmación.</p><button className="danger" onClick={() => act('terminate')}><X/>Finalizar proceso</button><button className="outline" onClick={() => act('force')}>Forzar finalización</button></> : <p>Elige un proceso de la tabla para ver las acciones disponibles.</p>}{notice && <p className="notice">{notice}</p>}</aside></section>
+    <section className="process-section"><div className="process-table"><header><div><h2>Procesos</h2><p>{error || 'Selecciona un proceso para actuar sobre él.'}</p></div><label><Search/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar proceso"/></label></header><table><thead><tr><th>Proceso</th><th>CPU</th><th>Memoria</th><th>Estado</th></tr></thead><tbody>{filtered.length ? filtered.map(item => <tr className={selected?.pid === item.pid ? 'selected' : ''} onClick={() => setSelected(item)} key={item.pid}><td><b>{item.name}</b><small>PID {item.pid}</small></td><td>{item.cpu}%</td><td>{formatBytes(item.memory)}</td><td><span className="state">{item.state}</span></td></tr>) : <tr><td colSpan={4}>No se encontraron procesos.</td></tr>}</tbody></table></div><aside><h2>Acción seleccionada</h2>{selected ? <><h3>{selected.name}</h3><p>PID {selected.pid}. Las acciones requieren confirmación.</p><button className="danger" onClick={() => act('terminate')}><X/>Finalizar proceso</button><button className="outline" onClick={() => act('force')}>Forzar finalización</button></> : <p>Elige un proceso de la tabla para ver las acciones disponibles.</p>}{notice && <p className="notice">{notice}</p>}</aside></section>
   </main>
 }
 const root = document.getElementById('root')

@@ -6,7 +6,7 @@ const overview = { timestamp: 1, cpu: { percentage: 23, load: 1.2, cores: 8 }, m
 const processes = [{ pid: 100, name: 'Safari', cpu: 5, memory: 200_000_000, state: 'S' }, { pid: 200, name: 'Terminal', cpu: 2, memory: 100_000_000, state: 'R' }]
 
 beforeEach(() => {
-  vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve({ json: () => Promise.resolve(url === '/api/overview' ? overview : url === '/api/history' ? [overview] : processes) })))
+  vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve({ ok: true, json: () => Promise.resolve(url === '/api/overview' ? overview : url === '/api/history' ? [overview] : processes) })))
 })
 
 describe('dashboard', () => {
