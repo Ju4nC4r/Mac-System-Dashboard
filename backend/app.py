@@ -73,10 +73,9 @@ def sample_loop() -> None:
 
 def processes() -> list[dict[str, object]]:
     total_memory = memory()["total"]
-    # Keep the standard BSD ps field names.  Some macOS versions do not
-    # consistently accept the "=" heading-suppression suffix for every field.
-    # The optional header is ignored safely below.
-    rows = run(["ps", "-axo", "pid,ppid,%cpu,%mem,stat,comm"]).splitlines()
+    # Use macOS' system ps directly.  `-e` includes processes without a
+    # controlling terminal, which is where most system and GUI processes are.
+    rows = run(["/bin/ps", "-e", "-o", "pid=,ppid=,%cpu=,%mem=,stat=,comm="]).splitlines()
     output = []
     for row in rows:
         parts = row.strip().split(None, 5)
