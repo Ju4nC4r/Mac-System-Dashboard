@@ -22,7 +22,10 @@ PROTECTED_NAMES = {"launchd", "kernel_task", "WindowServer", "loginwindow", "sys
 
 
 def run(command: list[str]) -> str:
-    return subprocess.run(command, capture_output=True, text=True, check=False).stdout
+    # Keep command output machine-readable even when macOS is configured with
+    # a locale that uses decimal commas (for example, Spanish).
+    environment = {**os.environ, "LC_ALL": "C"}
+    return subprocess.run(command, capture_output=True, text=True, check=False, env=environment).stdout
 
 
 def memory() -> dict[str, float]:
@@ -83,9 +86,9 @@ def processes() -> list[dict[str, object]]:
             continue
         pid, ppid, cpu_usage, mem_pct, state, command = parts
         try:
-            percent = float(mem_pct)
+            percent = float(mem_pct.replace(",", "."))
             output.append({"pid": int(pid), "ppid": int(ppid), "name": Path(command).name, "command": command,
-                           "cpu": round(float(cpu_usage), 1), "memory": int(total_memory * percent / 100), "state": state})
+                           "cpu": round(float(cpu_usage.replace(",", ".")), 1), "memory": int(total_memory * percent / 100), "state": state})
         except ValueError:
             continue
     return sorted(output, key=lambda item: (item["cpu"], item["memory"]), reverse=True)

@@ -33,6 +33,13 @@ class MetricsTests(unittest.TestCase):
         self.assertEqual([item["name"] for item in result], ["High", "Low"])
         self.assertEqual(result[0]["memory"], 5)
 
+    def test_process_parser_accepts_decimal_commas(self):
+        output = "  12 1 2,5 1,0 S /Applications/Example\n"
+        with patch.object(app, "run", return_value=output), patch.object(app, "memory", return_value={"total": 1000}):
+            result = app.processes()
+        self.assertEqual(result[0]["cpu"], 2.5)
+        self.assertEqual(result[0]["memory"], 10)
+
     def test_protected_process_is_never_signalled(self):
         with patch.object(app, "processes", return_value=[{"pid": 630, "name": "WindowServer"}]), patch("os.kill") as kill:
             ok, message = app.manage_process(630, False)
