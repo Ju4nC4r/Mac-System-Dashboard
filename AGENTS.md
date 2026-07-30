@@ -14,6 +14,7 @@ No debe enviar telemetría, métricas ni datos de procesos fuera de `localhost`.
 - `frontend/vite.config.ts`: configuración de Vite; redirige `/api` al servicio durante el desarrollo y compila en `backend/static`.
 - `frontend/package.json`: dependencias y comandos del dashboard.
 - `README.md`: instrucciones de instalación, uso y API para personas usuarias.
+- `LICENSE`: texto completo de la GNU GPL versión 3; no modificarlo.
 
 `backend/static/` es una salida de compilación y no se versiona. `node_modules/` y `.venv/` tampoco se versionan.
 

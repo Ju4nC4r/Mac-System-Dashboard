@@ -167,6 +167,10 @@ Las pruebas cubren cálculos de métricas, lectura y protección de procesos —
 
 Las decisiones operativas y los ficheros clave del proyecto están documentados en [`AGENTS.md`](AGENTS.md). Mantén el dashboard local, seguro y compatible con macOS; no añadas telemetría ni automatices la finalización de procesos sin una petición explícita.
 
+## 📄 Licencia
+
+Copyright © 2026 Juan Carlos Gallego. Este proyecto se distribuye bajo la [GNU General Public License v3.0](LICENSE), sin una cláusula de versión posterior.
+
 ## 📚 Repositorio
 
 El proyecto se mantiene en [GitHub](https://github.com/Ju4nC4r/Mac-System-Dashboard).
