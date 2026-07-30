@@ -1,119 +1,135 @@
+<div align="center">
+
 # mac-system-dashboard
 
-Dashboard web local para consultar el estado de este Mac bajo demanda. Muestra métricas reales de CPU, memoria, disco, batería y procesos, sin enviar información a servicios externos.
+**Un dashboard local y bajo demanda para entender el estado de tu Mac.**
 
-## Qué incluye
+CPU, memoria, disco, batería y procesos reales, reunidos en una interfaz web clara que no envía datos fuera del ordenador.
 
-- Tarjetas de estado para CPU, memoria, disco y batería.
-- Gráficas de uso reciente de CPU y memoria, actualizadas automáticamente.
-- Tabla de procesos ordenada por consumo, con búsqueda por nombre.
-- Finalización normal o forzada de procesos, siempre con confirmación.
-- Protección frente a procesos esenciales de macOS y frente al propio servicio.
-- Interfaz adaptada a pantallas de escritorio y móvil.
+</div>
 
-## Requisitos
+## Introducción
+
+`mac-system-dashboard` convierte las métricas esenciales de macOS en un panel web local: tarjetas grandes para una lectura inmediata, gráficas para detectar tendencias y una tabla de procesos para investigar qué está consumiendo recursos.
+
+Está pensado para ejecutarse cuando lo necesitas. El servicio escucha únicamente en el propio Mac y conserva las muestras solo en memoria mientras está en marcha.
+
+## Características
+
+- **Lectura inmediata:** CPU, memoria, disco y batería en tarjetas grandes y actualizadas automáticamente.
+- **Tendencias útiles:** gráficas recientes de CPU y memoria para entender la evolución, no solo una cifra puntual.
+- **Procesos bajo control:** búsqueda y ordenación por consumo, con cierre normal o forzado tras confirmación.
+- **Seguro por defecto:** protege procesos esenciales de macOS y no intenta elevar permisos.
+- **Privado y local:** no necesita base de datos, cuenta ni servicio en la nube.
+- **Preparado para desarrollo:** React, TypeScript, Python, pruebas automatizadas y contenedor para la interfaz.
+
+## Inicio rápido
+
+### Requisitos
 
 - macOS.
 - Python 3.10 o posterior.
 - Node.js 20 o posterior y npm.
 
-No requiere una base de datos ni un servicio en la nube.
-
-## Instalación inicial
-
-Desde la carpeta raíz del proyecto, crea o activa el entorno virtual de Python:
+### 1. Preparar el proyecto
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-```
 
-El servicio no usa dependencias externas de Python. Instala las dependencias del dashboard una sola vez:
-
-```bash
 cd frontend
 npm install
-```
-
-## Arranque bajo demanda
-
-Primero compila el dashboard para que el servicio Python pueda entregarlo:
-
-```bash
-cd frontend
 npm run build
+cd ..
 ```
 
-Después, desde la raíz del proyecto, inicia el servicio:
+### 2. Arrancar el dashboard
 
 ```bash
 .venv/bin/python backend/app.py
 ```
 
-Abre la dirección local que muestra la terminal. El servicio solo escucha en el propio Mac; para detenerlo basta con pulsar `Control + C` en esa terminal.
+Abre en el navegador la dirección local indicada por la terminal. Para detenerlo, pulsa `Control + C`.
 
-## Desarrollo de la interfaz
+> El servicio no se inicia automáticamente al encender el Mac: se ejecuta solo bajo petición.
 
-Para trabajar en React con recarga automática, inicia el servicio Python y, en otra terminal:
+## Qué verás
+
+| Área | Información disponible |
+| --- | --- |
+| **Resumen** | Uso de CPU, memoria, disco y batería. |
+| **Gráficas** | Evolución reciente de CPU y memoria. |
+| **Procesos** | Nombre, PID, CPU, memoria y estado de los procesos más activos. |
+| **Acciones** | Finalización normal o forzada de un proceso seleccionado, con confirmación. |
+
+La disponibilidad de batería depende del hardware. En un Mac sin batería, el dashboard lo muestra explícitamente en lugar de inventar un valor.
+
+## Desarrollo
+
+La interfaz usa React, TypeScript y Vite. Para desarrollarla con recarga automática, arranca primero el servicio Python y, en otra terminal, ejecuta:
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-El servidor de desarrollo redirige las solicitudes de métricas y procesos al servicio local.
+Vite reenvía las solicitudes de API al servicio local de macOS.
 
-## Contenedor para el dashboard
+### Estructura del proyecto
 
-El servicio Python debe seguir ejecutándose directamente en macOS, ya que consulta herramientas del sistema y procesos reales. La interfaz React sí puede ejecutarse en un contenedor.
+```text
+frontend/        React + TypeScript + Vite
+  src/           Interfaz, gráficas, estado y estilos
+backend/         Servicio local de Python
+  app.py         Métricas de macOS, API y control seguro de procesos
+backend/static/  Salida compilada de la interfaz
+```
 
-Primero inicia el servicio local de Python. En otra terminal, desde la raíz del proyecto, construye y arranca el contenedor:
+El backend obtiene las métricas con herramientas nativas de macOS: `sysctl`, `vm_stat`, `pmset` y `ps`.
+
+## Usar Docker
+
+El contenedor ejecuta la interfaz React y sus pruebas. El servicio Python debe mantenerse en macOS para poder consultar las métricas y procesos reales del host.
+
+Con el servicio Python ya iniciado, levanta la interfaz contenida desde la raíz del proyecto:
 
 ```bash
 docker compose up --build
 ```
 
-El contenedor publica el dashboard en el puerto local 8080 y reenvía las rutas de API al servicio Python del Mac. Para probar la interfaz dentro de la fase de construcción, ejecuta:
+La interfaz queda publicada en el puerto local `8080` y reenvía la API al servicio nativo del Mac. Para detenerla:
+
+```bash
+docker compose down
+```
+
+También puedes validar la fase de pruebas dentro de la imagen:
 
 ```bash
 docker build --target test -t mac-system-dashboard-tests frontend
 ```
 
-Detén el contenedor con `docker compose down`.
-
-## Arquitectura
-
-```text
-frontend/        React + TypeScript + Vite
-  src/           Componentes, gráficas y estilos del dashboard
-backend/         Servicio local de Python
-  app.py         Métricas de macOS, API y control seguro de procesos
-backend/static/  Dashboard compilado; se genera al ejecutar npm run build
-```
-
-El servicio usa herramientas disponibles en macOS, como `vm_stat`, `sysctl`, `pmset` y `ps`, para recopilar datos. Conserva las muestras recientes solo en memoria mientras está abierto.
-
 ## API local
 
-Estas rutas solo están disponibles desde el propio ordenador:
+Todas las rutas están disponibles solo desde el propio ordenador.
 
-| Ruta | Uso |
+| Ruta | Descripción |
 | --- | --- |
 | `GET /api/overview` | Estado actual de CPU, memoria, disco y batería. |
 | `GET /api/history` | Muestras recientes para las gráficas. |
-| `GET /api/processes` | Lista de procesos ordenada por consumo. |
+| `GET /api/processes` | Procesos ordenados por consumo. |
 | `POST /api/processes/:pid/terminate` | Solicita el cierre normal de un proceso. |
 | `POST /api/processes/:pid/force` | Solicita el cierre forzado de un proceso. |
 
-## Seguridad al gestionar procesos
+## Seguridad
 
-Finalizar un proceso puede cerrar una aplicación y causar pérdida de trabajo no guardado. Por ello, la interfaz siempre solicita confirmación y el servicio impide actuar sobre procesos críticos conocidos de macOS, el proceso principal del sistema y el propio dashboard.
+Finalizar un proceso puede causar pérdida de trabajo no guardado. La interfaz siempre pide confirmación y el backend bloquea acciones sobre procesos críticos conocidos, el proceso principal del sistema y el propio dashboard.
 
-Algunos procesos pueden requerir permisos adicionales de macOS. En ese caso, el dashboard informa de que no tiene autorización suficiente y no intenta elevar privilegios automáticamente.
+Algunos procesos pueden requerir permisos adicionales de macOS. El dashboard informa de esta limitación y nunca intenta obtener privilegios por su cuenta.
 
 ## Verificación
 
-Antes de publicar cambios, ejecuta:
+Antes de enviar cambios, ejecuta la batería completa:
 
 ```bash
 cd frontend
@@ -124,8 +140,12 @@ cd ..
 .venv/bin/python -m unittest discover -s backend -p 'test_*.py'
 ```
 
-Las pruebas de Python cubren cálculos de métricas, lectura y protección de procesos y rutas de la API local. Las pruebas de React comprueban el renderizado de métricas y el filtro de procesos. La validación visual se realiza con datos reales en el navegador, sin finalizar procesos.
+Las pruebas cubren cálculos de métricas, lectura y protección de procesos, rutas de la API local, renderizado de la interfaz y búsqueda de procesos. La revisión visual se realiza con datos reales, sin finalizar aplicaciones durante las pruebas.
 
-## Git
+## Contribuir
 
-El proyecto incluye reglas para no versionar el entorno virtual de Python, dependencias de Node, archivos de compilación ni artefactos temporales. Mantén los cambios de código y documentación bajo control de versiones con Git.
+Las decisiones operativas y los ficheros clave del proyecto están documentados en [`AGENTS.md`](AGENTS.md). Mantén el dashboard local, seguro y compatible con macOS; no añadas telemetría ni automatices la finalización de procesos sin una petición explícita.
+
+## Repositorio
+
+El proyecto se mantiene en [GitHub](https://github.com/Ju4nC4r/Mac-System-Dashboard).
