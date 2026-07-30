@@ -75,6 +75,10 @@ La disponibilidad de batería depende del hardware. En un Mac sin batería, el d
 
 ## 🛠️ Desarrollo
 
+## 🗺️ Arquitectura
+
+![Arquitectura local del dashboard](docs/assets/architecture.png)
+
 La interfaz usa React, TypeScript y Vite. Para desarrollarla con recarga automática, arranca primero el servicio Python y, en otra terminal, ejecuta:
 
 ```bash
@@ -92,6 +96,10 @@ frontend/        React + TypeScript + Vite
 backend/         Servicio local de Python
   app.py         Métricas de macOS, API y control seguro de procesos
 backend/static/  Salida compilada de la interfaz
+docs/assets/     Infografías y recursos de documentación
+.github/         Automatización de comprobaciones en GitHub
+AGENTS.md        Contexto operativo para asistentes
+CONTRIBUTING.md  Guía para contribuciones
 ```
 
 El backend obtiene las métricas con herramientas nativas de macOS: `sysctl`, `vm_stat`, `pmset` y `ps`. Para que la tabla de procesos funcione igual con cualquier idioma del sistema, normaliza los valores numéricos de `ps` a un formato estable antes de procesarlos.
