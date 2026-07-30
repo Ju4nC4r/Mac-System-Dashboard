@@ -2,7 +2,8 @@
 FROM node:24-alpine AS dependencies
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# El bloqueo se generó en macOS; npm instala aquí los binarios opcionales de Linux.
+RUN npm install
 
 FROM dependencies AS test
 COPY . .
